@@ -26,7 +26,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -36,8 +36,8 @@ android {
     defaultConfig {
         applicationId "im.nfc.flutter_nfc_kit_example"
         minSdkVersion 19
-        targetSdkVersion 31
-        compileSdkVersion 31
+        targetSdkVersion 33
+        compileSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
