@@ -134,8 +134,7 @@ class NDEFRawRecord {
 
   NDEFRawRecord(this.identifier, this.payload, this.type, this.typeNameFormat);
 
-  factory NDEFRawRecord.fromJson(Map<String, dynamic> json) =>
-      _$NDEFRawRecordFromJson(json);
+  factory NDEFRawRecord.fromJson(Map<String, dynamic> json) => _$NDEFRawRecordFromJson(json);
   Map<String, dynamic> toJson() => _$NDEFRawRecordToJson(this);
 }
 
@@ -143,15 +142,14 @@ class NDEFRawRecord {
 extension NDEFRecordConvert on ndef.NDEFRecord {
   /// Convert an [ndef.NDEFRecord] to encoded [NDEFRawRecord]
   NDEFRawRecord toRaw() {
-    return NDEFRawRecord(id?.toHexString() ?? '', payload?.toHexString() ?? '',
-        type?.toHexString() ?? '', this.tnf);
+    return NDEFRawRecord(
+        id?.toHexString() ?? '', payload?.toHexString() ?? '', type?.toHexString() ?? '', this.tnf);
   }
 
   /// Convert an [NDEFRawRecord] to decoded [ndef.NDEFRecord].
   /// Use `NDEFRecordConvert.fromRaw` to invoke.
   static ndef.NDEFRecord fromRaw(NDEFRawRecord raw) {
-    return ndef.decodePartialNdefMessage(
-        raw.typeNameFormat, raw.type.toBytes(), raw.payload.toBytes(),
+    return ndef.decodePartialNdefMessage(raw.typeNameFormat, raw.type.toBytes(), raw.payload.toBytes(),
         id: raw.identifier == "" ? null : raw.identifier.toBytes());
   }
 }
@@ -168,10 +166,8 @@ class FlutterNfcKit {
 
   /// get the availablility of NFC reader on this device
   static Future<NFCAvailability> get nfcAvailability async {
-    final String availability =
-        await _channel.invokeMethod('getNFCAvailability');
-    return NFCAvailability.values
-        .firstWhere((it) => it.toString() == "NFCAvailability.$availability");
+    final String availability = await _channel.invokeMethod('getNFCAvailability');
+    return NFCAvailability.values.firstWhere((it) => it.toString() == "NFCAvailability.$availability");
   }
 
   /// Try to poll a NFC tag from reader.
@@ -202,9 +198,9 @@ class FlutterNfcKit {
     Duration? timeout,
     bool androidPlatformSound = true,
     bool androidCheckNDEF = true,
-    String iosAlertMessage = "Hold your iPhone near the card",
-    String iosMultipleTagMessage =
-        "More than one tags are detected, please leave only one tag and try again.",
+    // String iosAlertMessage = "Hold your iPhone near the card",
+    // String iosMultipleTagMessage =
+    //     "More than one tags are detected, please leave only one tag and try again.",
     bool readIso14443A = true,
     bool readIso14443B = true,
     bool readIso18092 = false,
@@ -223,8 +219,8 @@ class FlutterNfcKit {
     if (!androidPlatformSound) technologies |= 0x100;
     final String data = await _channel.invokeMethod('poll', {
       'timeout': timeout?.inMilliseconds ?? POLL_TIIMEOUT,
-      'iosAlertMessage': iosAlertMessage,
-      'iosMultipleTagMessage': iosMultipleTagMessage,
+      // 'iosAlertMessage': iosAlertMessage,
+      // 'iosMultipleTagMessage': iosMultipleTagMessage,
       'technologies': technologies,
       'probeWebUSBMagic': probeWebUSBMagic,
     });
@@ -244,10 +240,8 @@ class FlutterNfcKit {
   /// Timeout is reset to default value when [finish] is called, and could be changed by multiple calls to [transceive].
   static Future<T> transceive<T>(T capdu, {Duration? timeout}) async {
     assert(capdu is String || capdu is Uint8List);
-    return await _channel.invokeMethod('transceive', {
-      'data': capdu,
-      'timeout': timeout?.inMilliseconds ?? TRANSCEIVE_TIMEOUT
-    });
+    return await _channel.invokeMethod(
+        'transceive', {'data': capdu, 'timeout': timeout?.inMilliseconds ?? TRANSCEIVE_TIMEOUT});
   }
 
   /// Read NDEF records (in decoded format, Android & iOS only).
@@ -257,9 +251,7 @@ class FlutterNfcKit {
   /// On Android, this would cause any other open TagTechnology to be closed.
   /// See [ndef](https://pub.dev/packages/ndef) for usage of [ndef.NDEFRecord].
   static Future<List<ndef.NDEFRecord>> readNDEFRecords({bool? cached}) async {
-    return (await readNDEFRawRecords(cached: cached))
-        .map((r) => NDEFRecordConvert.fromRaw(r))
-        .toList();
+    return (await readNDEFRawRecords(cached: cached)).map((r) => NDEFRecordConvert.fromRaw(r)).toList();
   }
 
   /// Read NDEF records (in raw data, Android & iOS only).
@@ -269,11 +261,8 @@ class FlutterNfcKit {
   /// On Android, this would cause any other open TagTechnology to be closed.
   /// Please use [readNDEFRecords] if you want decoded NDEF records
   static Future<List<NDEFRawRecord>> readNDEFRawRecords({bool? cached}) async {
-    final String data =
-        await _channel.invokeMethod('readNDEF', {'cached': cached ?? false});
-    return (jsonDecode(data) as List<dynamic>)
-        .map((object) => NDEFRawRecord.fromJson(object))
-        .toList();
+    final String data = await _channel.invokeMethod('readNDEF', {'cached': cached ?? false});
+    return (jsonDecode(data) as List<dynamic>).map((object) => NDEFRawRecord.fromJson(object)).toList();
   }
 
   /// Write NDEF records (in decoded format, Android & iOS only).
@@ -302,10 +291,7 @@ class FlutterNfcKit {
   /// On iOS, use [iosAlertMessage] to indicate success or [iosErrorMessage] to indicate failure.
   /// If both parameters are set, [iosErrorMessage] will be used.
   /// On Web, set [closeWebUSB] to `true` to end the session, so that user can choose a different device in next [poll].
-  static Future<void> finish(
-      {String? iosAlertMessage,
-      String? iosErrorMessage,
-      bool? closeWebUSB}) async {
+  static Future<void> finish({String? iosAlertMessage, String? iosErrorMessage, bool? closeWebUSB}) async {
     return await _channel.invokeMethod('finish', {
       'iosErrorMessage': iosErrorMessage,
       'iosAlertMessage': iosAlertMessage,
@@ -316,11 +302,11 @@ class FlutterNfcKit {
   /// iOS only, change currently displayed NFC reader session alert message with [message].
   /// There must be a valid session when invoking.
   /// On Android, call to this function does nothing.
-  static Future<void> setIosAlertMessage(String message) async {
-    if (!kIsWeb && Platform.isIOS) {
-      return await _channel.invokeMethod('setIosAlertMessage', message);
-    }
-  }
+  // static Future<void> setIosAlertMessage(String message) async {
+  //   if (!kIsWeb && Platform.isIOS) {
+  //     return await _channel.invokeMethod('setIosAlertMessage', message);
+  //   }
+  // }
 
   /// Make the NDEF tag readonly (i.e. lock the NDEF tag, Android & iOS only).
   ///
